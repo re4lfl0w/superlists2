@@ -6,7 +6,7 @@ from selenium.webdriver.common.keys import Keys
 class NewVisitorTest(unittest.TestCase):
     def setUp(self):
         self.browser = webdriver.Firefox()
-        self.browser.implicitly_wait(3)
+        self.browser.implicitly_wait(1)
 
     def tearDown(self):
         self.browser.quit()
@@ -36,6 +36,7 @@ class NewVisitorTest(unittest.TestCase):
         rows = table.find_elements_by_tag_name('tr')
         self.assertTrue(
             any(row.text == '1: 공작깃털 사기' for row in rows),
+            "신규 작업이 테이블에 표시되지 않는다"
         )
 
         # 추가 아이템을 입력할 수 있는 여분의 텍스트 상자가 존재한다
