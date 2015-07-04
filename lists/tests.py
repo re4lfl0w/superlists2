@@ -8,45 +8,21 @@ from lists.models import Item
 
 class HomePageTest(TestCase):
     def test_root_url_resolve_to_home_page_view(self):
+        '''resolve 함수를 사용해서 내가 원한 view를 호출하는지?(URL mapping)'''
         found = resolve('/')
         self.assertEqual(found.func, home_page)
 
     def test_home_page_returns_correct_html(self):
+        '''home_page에 접속했을 때 받은 응답과 내가 예상한 html이 같은지?'''
         request = HttpRequest()
         response = home_page(request)
         expected_html = render_to_string('home.html')
         self.assertEqual(response.content.decode(), expected_html)
 
-    def test_home_page_can_save_a_POST_request(self):
-        request = HttpRequest()
-        request.method = 'POST'
-        request.POST['item_text'] = '신규 작업 아이템'
-
-        response = home_page(request)
-
-        self.assertEqual(Item.objects.count(), 1)
-        new_item = Item.objects.first()
-        self.assertEqual(new_item.text, '신규 작업 아이템')
-
-    def test_home_page_redirects_after_POST(self):
-        request = HttpRequest()
-        request.method = 'POST'
-        request.POST['item_text'] = '신규 작업 아이템'
-
-        response = home_page(request)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'],
-                         '/lists/the-only-list-in-the-world/')
-
-    def test_home_page_only_saves_items_when_necessary(self):
-        request = HttpRequest()
-        home_page(request)
-        self.assertEqual(Item.objects.count(), 0)
-
 
 class ItemModelTest(TestCase):
     def test_saving_and_retrieving_items(self):
+        '''아이템을 저장하고 다시 가져왔을 때 정상적인지?'''
         first_item = Item()
         first_item.text = '첫 번째 아이템'
         first_item.save()
@@ -69,10 +45,12 @@ class ItemModelTest(TestCase):
 
 class ListViewTest(TestCase):
     def test_uses_list_template(self):
+        '''특정한 뷰에서 내가 지정한 템플릿 파일이 사용되는지?'''
         response = self.client.get('/lists/the-only-list-in-the-world/')
         self.assertTemplateUsed(response, 'list.html')
 
     def test_displays_all_items(self):
+        '''모든 아이템이 정상적으로 보여지는지?'''
         Item.objects.create(text='itemey 1')
         Item.objects.create(text='itemey 2')
 
@@ -80,3 +58,25 @@ class ListViewTest(TestCase):
 
         self.assertContains(response, 'itemey 1')
         self.assertContains(response, 'itemey 2')
+
+
+class NewListTest(TestCase):
+    def test_saving_a_POST_request(self):
+        '''POST requst가 제대로 저장되었는지?'''
+        self.client.post(
+            '/lists/new',
+            data={'item_text': '신규 작업 아이템'}
+        )
+
+        self.assertEqual(Item.objects.count(), 1)
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, '신규 작업 아이템')
+
+    def test_redirects_after_POST(self):
+        '''POST 후에 정상적으로 redirect가 되는지?'''
+        response = self.client.post(
+            '/lists/new',
+            data={'item_text': '신규 작업 아이템'}
+        )
+
+        self.assertRedirects(response, '/lists/the-only-list-in-the-world/')
