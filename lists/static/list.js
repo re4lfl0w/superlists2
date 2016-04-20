@@ -1,7 +1,9 @@
 /* global $, test, equal */
 
-$('input').on('keypress', function () {
-    $('.has-error').hide();
+jQuery(document).ready(function () {
+    $('input').on('keypress', function () {
+        $('.has-error').hide();
+    });
 });
 
 test("키 입력 시에 에러가 숨겨져야 한다", function () {
